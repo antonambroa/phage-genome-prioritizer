@@ -1,0 +1,40 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.pytest_cache/
+
+# Data and results
+data/raw/*
+data/interim/*
+data/processed/*
+results/*
+logs/*
+work/*
+tmp/*
+
+# Keep directory placeholders / examples
+!data/**/.gitkeep
+!results/**/.gitkeep
+!examples/**
+
+# Large bioinformatics/model files
+*.fasta
+*.fa
+*.fna
+*.faa
+*.fastq
+*.fq
+*.bam
+*.sam
+*.vcf
+*.pt
+*.pth
+*.ckpt
+*.safetensors
+*.msh
+
+# OS/editor
+.DS_Store
+*.swp

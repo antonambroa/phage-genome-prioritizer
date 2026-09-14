@@ -1,0 +1,6 @@
+accession	host_organism_name	length_bp	gc_percent	source_database	update_date	protein_count_ncbi	notes
+PHAGE_A	Escherichia coli	45000	49.5	RefSeq	2026-01-01	72	
+PHAGE_B	Shigella flexneri	51000	50.2	GenBank	2025-05-01	80	
+PHAGE_C	Klebsiella pneumoniae	170000	52.0	RefSeq	2026-02-01	260	
+PHAGE_D	Pseudomonas aeruginosa	65000	57.5	RefSeq	2024-03-01	95	
+PHAGE_E	Acinetobacter baumannii	39000	39.1	GenBank	2023-01-01	55	
