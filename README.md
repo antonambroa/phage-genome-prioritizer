@@ -1,10 +1,12 @@
 # phage-genome-prioritizer
 
-A lightweight, reproducible workflow for **curating and prioritizing complete bacteriophage genomes** for downstream comparative genomics and sequence-model benchmarking.
+[![tests](https://github.com/antonambroa/phage-genome-prioritizer/actions/workflows/tests.yml/badge.svg)](https://github.com/antonambroa/phage-genome-prioritizer/actions/workflows/tests.yml)
 
-The project grew out of a research workflow used to reduce a large public phage collection into a diverse, quality-controlled candidate set while keeping the selection process explicit and auditable.
+Scripts for curating and prioritizing complete bacteriophage genomes before comparative genomics or sequence-model analysis.
 
-## What it does
+This repository grew out of a working pipeline for reducing a large public phage collection to a smaller, diverse and quality-controlled candidate set while keeping each filtering decision traceable.
+
+## Workflow
 
 ```text
 NCBI Virus metadata / FASTA
@@ -39,38 +41,19 @@ length/GC stratified preselection
                model/score benchmarking
 ```
 
-## Current scope
+The core scripts use the Python standard library. Additional tools are needed only for the stages that use them directly: NCBI Datasets CLI for data acquisition, Mash for similarity calculations, CheckV for viral genome QC, and Evo2/BioNeMo or another scorer for the optional model-benchmarking stage.
 
-The core scripts use the Python standard library and are intentionally kept transparent rather than hidden behind a large framework. External tools are only needed for the stages that call them directly:
-
-- **NCBI Datasets CLI** for metadata acquisition.
-- **Mash** to generate similarity pairs used by the redundancy-clustering step.
-- **CheckV** for viral genome QC.
-- **Evo2/BioNeMo or another sequence scorer** only for the optional model-benchmarking integration.
-
-No reference genomes, model weights, HPC paths, institutional configuration, or large result files are included.
+No reference genomes, model weights, cluster-specific paths or large result files are included.
 
 ## Quick start
 
-### 1. Download public metadata
-
-```bash
-bash scripts/download_ncbi_caudoviricetes_metadata.sh data/raw/ncbi_virus
-```
-
-### 2. Add normalized host groups
+The example files are synthetic and small enough to run locally.
 
 ```bash
 python scripts/add_host_groups.py \
   --input examples/inventory.tsv \
   --output /tmp/inventory_grouped.tsv
-```
 
-### 3. Build a stratified preselection
-
-For a small demo, lower the research-scale quotas:
-
-```bash
 python scripts/make_stratified_preselection.py \
   --input /tmp/inventory_grouped.tsv \
   --output /tmp/preselection.tsv \
@@ -78,23 +61,13 @@ python scripts/make_stratified_preselection.py \
   --quota-klebsiella 1 \
   --quota-pseudomonas 1 \
   --quota-acinetobacter 1
-```
 
-### 4. Build redundancy clusters
-
-The input edge list must contain `accession_a` and `accession_b` columns. It is normally generated from a chosen Mash similarity threshold.
-
-```bash
 python scripts/build_mash_redundancy_clusters.py \
   --inventory /tmp/preselection.tsv \
   --pairs examples/mash_pairs.tsv \
   --clusters-output /tmp/mash_clusters.tsv \
   --flagged-inventory-output /tmp/preselection_mash.tsv
-```
 
-### 5. Merge CheckV results
-
-```bash
 python scripts/merge_checkv_results.py \
   --inventory /tmp/preselection_mash.tsv \
   --checkv-quality-summary examples/checkv_quality_summary.tsv \
@@ -103,29 +76,41 @@ python scripts/merge_checkv_results.py \
   --max-contamination 0
 ```
 
+The same example can be run in one go with:
+
+```bash
+bash examples/run_demo.sh
+```
+
 ## Repository layout
 
 ```text
 scripts/            curation, QC, filtering and sequence utilities
 slurm/              generic HPC submission templates
 integrations/evo2/  optional sequence-model benchmarking helpers
-examples/           tiny synthetic tabular examples
+examples/           small synthetic inputs
 tests/              tests for core selection/QC logic
 docs/               methodology and limitations
 ```
 
-## Reproducibility choices
+## Reproducibility
 
-- Sampling operations use explicit random seeds.
-- Stratified selection is performed across host, genome-length and GC bins.
-- Redundancy clusters retain a deterministic representative.
-- QC decisions are written back to the inventory together with machine-readable reasons.
-- Perturbed and negative-control windows can be generated for score sanity checks.
+Sampling uses explicit random seeds, stratified selection is performed across host/length/GC bins, Mash clusters retain a deterministic representative, and QC decisions are written back to the inventory with machine-readable reasons. Perturbed and negative-control windows are also available for model-score sanity checks.
+
+## Tests
+
+```bash
+python -m pip install -r requirements-dev.txt
+python -m pytest -q
+bash examples/run_demo.sh
+```
+
+The same checks run automatically on pushes and pull requests through GitHub Actions.
 
 ## Biological interpretation
 
-The functional annotation screen is deliberately conservative and keyword-based. It flags records for review; it does **not** establish lysogeny, virulence, antimicrobial resistance, host range, safety, or therapeutic suitability. See [`docs/methodology.md`](docs/methodology.md).
+The functional annotation screen is deliberately conservative and keyword-based. It flags records for review; it does **not** establish lysogeny, virulence, antimicrobial resistance, host range, safety or therapeutic suitability. See [`docs/methodology.md`](docs/methodology.md).
 
 ## Status
 
-Research code being converted into a reusable public workflow. The scripts are suitable for transparent, reproducible curation experiments, but the complete pipeline is not yet packaged as a single workflow engine (Nextflow/Snakemake).
+The individual stages are usable as standalone scripts. The full workflow is still script-based rather than wrapped in Nextflow or Snakemake.
